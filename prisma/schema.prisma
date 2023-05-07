@@ -47,10 +47,12 @@ model User {
   email         String?   @unique
   emailVerified DateTime? @map("email_verified")
   image         String?
-  accounts      Account[]
-  sessions      Session[]
   createdAt     DateTime  @default(now()) @map(name: "created_at")
   updatedAt     DateTime  @default(now()) @map(name: "updated_at")
+  accounts      Account[]
+  sessions      Session[]
+  services      Service[]
+  orders        Order[]
 
   @@map("users")
 }
@@ -62,4 +64,35 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model Service {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  description String?
+  price       Int
+  sellerId    String   @map(name: "seller_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map(name: "created_at")
+  updatedAt   DateTime @default(now()) @map(name: "updated_at")
+  seller      User     @relation(fields: [sellerId], references: [id])
+  orders      Order[]
+
+  @@map("services")
+}
+
+model Order {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  buyerId                String    @map(name: "buyer_id") @db.Uuid
+  serviceId              String    @map(name: "service_id") @db.Uuid
+  price                  Int
+  walletAddress          String?   @map(name: "wallet_address")
+  transactionHash        String?   @map(name: "transaction_hash")
+  createdAt              DateTime  @default(now()) @map(name: "created_at")
+  paidAt                 DateTime? @map(name: "paid_at")
+  transactionConfirmedAt DateTime? @map(name: "transaction_confirmed_at")
+  deliveredAt            DateTime? @map(name: "delivered_at")
+  buyer                  User      @relation(fields: [buyerId], references: [id])
+  service                Service   @relation(fields: [serviceId], references: [id])
+
+  @@map("orders")
 }

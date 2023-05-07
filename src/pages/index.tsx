@@ -1,28 +1,32 @@
-import Head from 'next/head'
-import { useSession, signIn, signOut } from 'next-auth/react'
 import React from 'react'
+import { useHasMounted } from '@/hooks/use-has-mounted'
+import { LandingLayout } from '@/layouts'
+import { LandingPage } from '@/screens/landing'
+import { getIsSsrMobile } from '@/utils/get-is-ssr-mobile'
+import { useIsMobile } from '@/utils/use-is-mobile'
+import type { GetServerSidePropsContext } from 'next'
 
-export default function Home() {
-  const { data: session } = useSession()
+const Page: React.FC = () => {
+  const hasMounted = useHasMounted()
+  const isMobile = useIsMobile()
+
+  if (!hasMounted) {
+    return <p>Not mounted yet</p>
+  }
 
   return (
-    <>
-      <Head>
-        <title>OptriPay</title>
-      </Head>
-
-      {!session ? (
-        <>
-          <p>Not signed in</p>
-          <br />
-          <button onClick={() => signIn()}>Sign in</button>
-        </>
-      ) : (
-        <main>
-          {session.user && <h4>Signed in as {session.user.name}</h4>}
-          <button onClick={() => signOut()}>Sign out</button>
-        </main>
-      )}
-    </>
+    <LandingLayout isMobile={isMobile}>
+      <LandingPage />
+    </LandingLayout>
   )
 }
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  return {
+    props: {
+      isSsrMobile: getIsSsrMobile(context),
+    },
+  }
+}
+
+export default Page
